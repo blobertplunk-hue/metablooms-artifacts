@@ -1,0 +1,1894 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Fraction Talk Hub</title>
+    <style>
+        /* ===================================================================
+           GLOBAL RESETS & FOUNDATIONS
+           =================================================================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* Color palette */
+            --color-primary: #2563eb;
+            --color-primary-dark: #1e40af;
+            --color-secondary: #7c3aed;
+            --color-success: #059669;
+            --color-warning: #d97706;
+            --color-danger: #dc2626;
+            --color-gray-50: #f9fafb;
+            --color-gray-100: #f3f4f6;
+            --color-gray-200: #e5e7eb;
+            --color-gray-300: #d1d5db;
+            --color-gray-600: #4b5563;
+            --color-gray-700: #374151;
+            --color-gray-900: #111827;
+
+            /* Spacing */
+            --spacing-xs: 4px;
+            --spacing-sm: 8px;
+            --spacing-md: 16px;
+            --spacing-lg: 24px;
+            --spacing-xl: 32px;
+
+            /* Typography */
+            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            --font-size-sm: 14px;
+            --font-size-base: 16px;
+            --font-size-lg: 18px;
+            --font-size-xl: 24px;
+
+            /* Layout */
+            --header-height: 60px;
+            --footer-height: 50px;
+            --teacher-bar-height: 50px;
+            --tab-nav-height: 48px;
+            --palette-width: 180px;
+
+            /* Z-index layers */
+            --z-base: 1;
+            --z-dragging: 100;
+            --z-modal: 200;
+            --z-tooltip: 300;
+        }
+
+        body {
+            font-family: var(--font-family);
+            font-size: var(--font-size-base);
+            line-height: 1.5;
+            color: var(--color-gray-900);
+            background: var(--color-gray-50);
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* ===================================================================
+           TOUCH-ACTION & INTERACTION POLICIES
+           (iPad + Pointer Events hardening)
+           =================================================================== */
+        .draggable,
+        .drag-zone,
+        .tool-item,
+        .fraction-piece {
+            touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .text-input,
+        .explanation-input {
+            touch-action: auto;
+            user-select: text;
+            -webkit-user-select: text;
+        }
+
+        /* ===================================================================
+           APP SHELL STRUCTURE
+           =================================================================== */
+        #app {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            max-height: 600px; /* Google Sites constraint */
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Header Bar */
+        #header-bar {
+            height: var(--header-height);
+            background: var(--color-primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 var(--spacing-md);
+            flex-shrink: 0;
+        }
+
+        #header-title {
+            font-size: var(--font-size-xl);
+            font-weight: 700;
+        }
+
+        #fullscreen-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid white;
+            color: white;
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: var(--font-size-sm);
+            transition: background 0.2s;
+        }
+
+        #fullscreen-btn:hover,
+        #fullscreen-btn:focus {
+            background: rgba(255, 255, 255, 0.3);
+            outline: 2px solid white;
+            outline-offset: 2px;
+        }
+
+        /* Teacher Bar */
+        #teacher-bar {
+            background: var(--color-secondary);
+            color: white;
+            padding: var(--spacing-sm) var(--spacing-md);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            flex-wrap: wrap;
+            min-height: var(--teacher-bar-height);
+            flex-shrink: 0;
+            transition: max-height 0.3s ease;
+            overflow: hidden;
+        }
+
+        #teacher-bar.collapsed {
+            max-height: 0;
+            padding: 0;
+            min-height: 0;
+        }
+
+        #teacher-bar-toggle {
+            position: absolute;
+            top: var(--header-height);
+            right: var(--spacing-md);
+            background: var(--color-secondary);
+            color: white;
+            border: none;
+            padding: var(--spacing-xs) var(--spacing-sm);
+            cursor: pointer;
+            font-size: var(--font-size-sm);
+            border-radius: 0 0 4px 4px;
+            z-index: 10;
+        }
+
+        .teacher-control {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            color: white;
+            padding: var(--spacing-xs) var(--spacing-sm);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: var(--font-size-sm);
+            transition: background 0.2s;
+        }
+
+        .teacher-control:hover,
+        .teacher-control:focus {
+            background: rgba(255, 255, 255, 0.3);
+            outline: 2px solid white;
+            outline-offset: 2px;
+        }
+
+        .teacher-control.active {
+            background: rgba(255, 255, 255, 0.5);
+            font-weight: 600;
+        }
+
+        .gate-icon {
+            margin-left: var(--spacing-xs);
+            font-size: 12px;
+        }
+
+        /* Tab Navigation */
+        #tab-nav {
+            display: flex;
+            background: var(--color-gray-100);
+            border-bottom: 2px solid var(--color-gray-300);
+            flex-shrink: 0;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: var(--spacing-sm) var(--spacing-md);
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: var(--font-size-base);
+            font-weight: 500;
+            color: var(--color-gray-600);
+            transition: all 0.2s;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-button:hover,
+        .tab-button:focus {
+            background: var(--color-gray-200);
+            outline: none;
+        }
+
+        .tab-button.active {
+            color: var(--color-primary);
+            background: white;
+            border-bottom-color: var(--color-primary);
+        }
+
+        /* Main Content Area */
+        #main-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* Left Palette (INVARIANT: never reordered) */
+        #tool-palette {
+            width: var(--palette-width);
+            background: var(--color-gray-100);
+            border-right: 2px solid var(--color-gray-300);
+            padding: var(--spacing-md);
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+
+        .palette-section {
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .palette-label {
+            font-size: var(--font-size-sm);
+            font-weight: 600;
+            color: var(--color-gray-700);
+            margin-bottom: var(--spacing-sm);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .tool-item {
+            background: white;
+            border: 2px solid var(--color-gray-300);
+            border-radius: 8px;
+            padding: var(--spacing-sm);
+            margin-bottom: var(--spacing-sm);
+            cursor: grab;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 44px; /* Touch target */
+            font-size: var(--font-size-lg);
+        }
+
+        .tool-item:hover,
+        .tool-item:focus {
+            border-color: var(--color-primary);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            outline: none;
+        }
+
+        .tool-item:active {
+            cursor: grabbing;
+        }
+
+        .tool-item.grabbed {
+            opacity: 0.5;
+        }
+
+        .tool-item.dragging {
+            position: fixed;
+            z-index: var(--z-dragging);
+            cursor: grabbing;
+            opacity: 0.9;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Right Stage (active tab workspace) */
+        #stage-container {
+            flex: 1;
+            padding: var(--spacing-lg);
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .stage-content {
+            display: none;
+        }
+
+        .stage-content.active {
+            display: block;
+        }
+
+        /* Footer Bar */
+        #footer-bar {
+            height: var(--footer-height);
+            background: var(--color-gray-100);
+            border-top: 2px solid var(--color-gray-300);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 var(--spacing-md);
+            flex-shrink: 0;
+        }
+
+        .footer-btn {
+            background: var(--color-gray-200);
+            border: 1px solid var(--color-gray-300);
+            padding: var(--spacing-xs) var(--spacing-md);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: var(--font-size-sm);
+            transition: all 0.2s;
+        }
+
+        .footer-btn:hover,
+        .footer-btn:focus {
+            background: var(--color-gray-300);
+            outline: 2px solid var(--color-primary);
+            outline-offset: 2px;
+        }
+
+        /* ===================================================================
+           TAB-SPECIFIC LAYOUTS
+           =================================================================== */
+
+        /* LOOK Tab */
+        #look-stage {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-lg);
+        }
+
+        .fraction-display {
+            background: white;
+            border: 2px solid var(--color-gray-300);
+            border-radius: 8px;
+            padding: var(--spacing-xl);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 200px;
+        }
+
+        .marker-board {
+            background: var(--color-gray-50);
+            border: 2px dashed var(--color-gray-300);
+            border-radius: 8px;
+            padding: var(--spacing-md);
+            min-height: 150px;
+            position: relative;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, 60px);
+            gap: var(--spacing-sm);
+        }
+
+        .prompt-text {
+            font-size: var(--font-size-lg);
+            color: var(--color-gray-700);
+            font-weight: 500;
+            text-align: center;
+            padding: var(--spacing-md);
+        }
+
+        /* COMPARE Tab */
+        #compare-stage {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-lg);
+        }
+
+        .compare-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-lg);
+        }
+
+        .compare-item {
+            background: white;
+            border: 2px solid var(--color-gray-300);
+            border-radius: 8px;
+            padding: var(--spacing-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 180px;
+        }
+
+        .stance-selector {
+            display: flex;
+            gap: var(--spacing-md);
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .stance-option {
+            padding: var(--spacing-sm) var(--spacing-lg);
+            background: white;
+            border: 2px solid var(--color-gray-300);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: var(--font-size-base);
+            min-width: 100px;
+            text-align: center;
+        }
+
+        .stance-option:hover,
+        .stance-option:focus {
+            border-color: var(--color-primary);
+            outline: none;
+        }
+
+        .stance-option.selected {
+            background: var(--color-primary);
+            color: white;
+            border-color: var(--color-primary);
+        }
+
+        .explanation-input {
+            width: 100%;
+            min-height: 80px;
+            padding: var(--spacing-md);
+            border: 2px solid var(--color-gray-300);
+            border-radius: 8px;
+            font-family: var(--font-family);
+            font-size: var(--font-size-base);
+            resize: vertical;
+        }
+
+        .explanation-input:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        /* BUILD Tab */
+        #build-stage {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-lg);
+        }
+
+        .build-zone {
+            background: var(--color-gray-50);
+            border: 3px dashed var(--color-gray-400);
+            border-radius: 12px;
+            padding: var(--spacing-xl);
+            min-height: 250px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .build-zone.has-content {
+            border-color: var(--color-primary);
+            background: rgba(37, 99, 235, 0.02);
+        }
+
+        .target-prompt {
+            font-size: var(--font-size-xl);
+            font-weight: 600;
+            color: var(--color-gray-700);
+            text-align: center;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .target-label {
+            font-size: 48px;
+            font-weight: 700;
+            color: var(--color-primary);
+        }
+
+        .target-label.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* PLACE Tab */
+        #place-stage {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-lg);
+        }
+
+        .number-line-container {
+            background: white;
+            border: 2px solid var(--color-gray-300);
+            border-radius: 8px;
+            padding: var(--spacing-xl);
+            min-height: 200px;
+        }
+
+        .number-line {
+            position: relative;
+            height: 80px;
+            margin: var(--spacing-xl) 0;
+        }
+
+        .number-line-base {
+            position: absolute;
+            top: 50%;
+            left: 10%;
+            right: 10%;
+            height: 3px;
+            background: var(--color-gray-900);
+            transform: translateY(-50%);
+        }
+
+        .number-line-endpoint {
+            position: absolute;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: 600;
+            font-size: var(--font-size-lg);
+        }
+
+        .number-line-endpoint.start {
+            left: 10%;
+        }
+
+        .number-line-endpoint.end {
+            left: 90%;
+        }
+
+        .number-line-partition {
+            position: absolute;
+            top: 50%;
+            width: 2px;
+            height: 20px;
+            background: var(--color-gray-600);
+            transform: translate(-50%, -50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .number-line-partition.visible {
+            opacity: 1;
+        }
+
+        .number-line-label {
+            position: absolute;
+            top: calc(50% + 20px);
+            transform: translateX(-50%);
+            font-size: var(--font-size-sm);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .number-line-label.visible {
+            opacity: 1;
+        }
+
+        .number-line-dot {
+            position: absolute;
+            top: 50%;
+            width: 24px;
+            height: 24px;
+            background: var(--color-primary);
+            border: 3px solid white;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            cursor: grab;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            z-index: 10;
+        }
+
+        .number-line-dot:active {
+            cursor: grabbing;
+        }
+
+        .number-line-dot:focus {
+            outline: 2px solid var(--color-primary-dark);
+            outline-offset: 2px;
+        }
+
+        /* MISCONCEPTIONS Tab */
+        #misconceptions-stage {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-lg);
+        }
+
+        .claim-box {
+            background: var(--color-warning);
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 2px solid var(--color-warning);
+            border-radius: 8px;
+            padding: var(--spacing-lg);
+            font-size: var(--font-size-lg);
+            font-style: italic;
+            color: var(--color-gray-900);
+        }
+
+        .counterexample-box {
+            background: white;
+            border: 2px solid var(--color-success);
+            border-radius: 8px;
+            padding: var(--spacing-lg);
+            display: none;
+            min-height: 150px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .counterexample-box.visible {
+            display: flex;
+        }
+
+        /* ===================================================================
+           SVG FRACTION REPRESENTATIONS
+           =================================================================== */
+        .svg-fraction {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .fraction-part {
+            transition: all 0.2s;
+        }
+
+        .fraction-part.shaded {
+            fill: var(--color-primary);
+            opacity: 0.8;
+        }
+
+        .fraction-part.unshaded {
+            fill: white;
+            stroke: var(--color-gray-900);
+            stroke-width: 2;
+        }
+
+        /* ===================================================================
+           FRACTION PIECES (BUILD Tab manipulatives)
+           =================================================================== */
+        .fraction-piece {
+            display: inline-block;
+            padding: var(--spacing-sm);
+            background: white;
+            border: 2px solid var(--color-gray-900);
+            border-radius: 4px;
+            font-size: var(--font-size-sm);
+            font-weight: 600;
+            text-align: center;
+            min-width: 50px;
+            cursor: grab;
+        }
+
+        .fraction-piece:active {
+            cursor: grabbing;
+        }
+
+        .fraction-piece[data-denominator="2"] {
+            background: #fee2e2;
+            width: 80px;
+        }
+
+        .fraction-piece[data-denominator="3"] {
+            background: #dbeafe;
+            width: 60px;
+        }
+
+        .fraction-piece[data-denominator="4"] {
+            background: #fef3c7;
+            width: 50px;
+        }
+
+        .fraction-piece[data-denominator="6"] {
+            background: #dcfce7;
+            width: 40px;
+        }
+
+        .fraction-piece[data-denominator="8"] {
+            background: #e9d5ff;
+            width: 35px;
+        }
+
+        /* ===================================================================
+           ACCESSIBILITY & FOCUS STATES
+           =================================================================== */
+        .visually-hidden {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            margin: -1px;
+            padding: 0;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        :focus-visible {
+            outline: 2px solid var(--color-primary);
+            outline-offset: 2px;
+        }
+
+        [aria-live] {
+            position: absolute;
+            left: -10000px;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+        }
+
+        /* ===================================================================
+           RESPONSIVE ADJUSTMENTS (Google Sites iframe hardening)
+           =================================================================== */
+        @media (max-width: 768px) {
+            :root {
+                --palette-width: 140px;
+                --font-size-base: 14px;
+            }
+
+            .compare-container {
+                grid-template-columns: 1fr;
+            }
+
+            #app {
+                max-height: none; /* Allow scroll on small screens */
+            }
+        }
+
+        /* ===================================================================
+           TOOLTIP & HINTS
+           =================================================================== */
+        .hint-tooltip {
+            position: absolute;
+            background: var(--color-gray-900);
+            color: white;
+            padding: var(--spacing-xs) var(--spacing-sm);
+            border-radius: 4px;
+            font-size: var(--font-size-sm);
+            z-index: var(--z-tooltip);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .hint-tooltip.visible {
+            opacity: 1;
+        }
+
+        /* ===================================================================
+           ANIMATION & TRANSITIONS
+           =================================================================== */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        /* ===================================================================
+           PRINT STYLES (if teacher wants to print student work)
+           =================================================================== */
+        @media print {
+            #teacher-bar,
+            #footer-bar,
+            .teacher-control {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- App Shell -->
+    <div id="app" role="application" aria-label="Fraction Talk Hub">
+
+        <!-- Header Bar -->
+        <header id="header-bar" role="banner">
+            <h1 id="header-title">Fraction Talk Hub</h1>
+            <button id="fullscreen-btn"
+                    aria-label="Open fullscreen in new tab"
+                    title="Press Ctrl+Shift+O">
+                🔗 Open Fullscreen
+            </button>
+        </header>
+
+        <!-- Teacher Bar (collapsible) -->
+        <button id="teacher-bar-toggle"
+                aria-expanded="true"
+                aria-controls="teacher-bar">
+            Teacher Controls ▼
+        </button>
+
+        <div id="teacher-bar" role="toolbar" aria-label="Teacher controls">
+            <button class="teacher-control" id="reveal-partitions" data-gate="partitions">
+                Show Partitions <span class="gate-icon">🔒</span>
+            </button>
+            <button class="teacher-control" id="reveal-benchmarks" data-gate="benchmarks">
+                Show Benchmarks <span class="gate-icon">🔒</span>
+            </button>
+            <button class="teacher-control" id="reveal-labels" data-gate="labels">
+                Show Labels <span class="gate-icon">🔒</span>
+            </button>
+            <button class="teacher-control" id="reveal-counterexample" data-gate="counterexample">
+                Show Counterexample <span class="gate-icon">🔒</span>
+            </button>
+            <button class="teacher-control" id="toggle-defend" data-gate="defend">
+                Ask: How could this make sense? <span class="gate-icon"></span>
+            </button>
+            <button class="teacher-control" id="freeze-tools">
+                Freeze Tools
+            </button>
+            <button class="teacher-control" id="clear-workspace">
+                Clear Workspace
+            </button>
+        </div>
+
+        <!-- Tab Navigation -->
+        <nav id="tab-nav" role="tablist" aria-label="Main navigation">
+            <button class="tab-button active"
+                    role="tab"
+                    aria-selected="true"
+                    aria-controls="look-stage"
+                    data-tab="look">
+                LOOK
+            </button>
+            <button class="tab-button"
+                    role="tab"
+                    aria-selected="false"
+                    aria-controls="compare-stage"
+                    data-tab="compare">
+                COMPARE
+            </button>
+            <button class="tab-button"
+                    role="tab"
+                    aria-selected="false"
+                    aria-controls="build-stage"
+                    data-tab="build">
+                BUILD
+            </button>
+            <button class="tab-button"
+                    role="tab"
+                    aria-selected="false"
+                    aria-controls="place-stage"
+                    data-tab="place">
+                PLACE
+            </button>
+            <button class="tab-button"
+                    role="tab"
+                    aria-selected="false"
+                    aria-controls="misconceptions-stage"
+                    data-tab="misconceptions">
+                MISCONCEPTIONS
+            </button>
+        </nav>
+
+        <!-- Main Content -->
+        <main id="main-content">
+
+            <!-- Left Palette (INVARIANT: never reordered across tabs) -->
+            <aside id="tool-palette" role="toolbar" aria-label="Tool palette">
+
+                <!-- Markers Section -->
+                <div class="palette-section" id="markers-section">
+                    <div class="palette-label">Markers</div>
+                    <div class="tool-item"
+                         role="button"
+                         tabindex="0"
+                         data-tool="notice"
+                         aria-label="Notice marker">
+                        🔍 Notice
+                    </div>
+                    <div class="tool-item"
+                         role="button"
+                         tabindex="0"
+                         data-tool="wonder"
+                         aria-label="Wonder marker">
+                        ❓ Wonder
+                    </div>
+                </div>
+
+                <!-- Fraction Pieces Section -->
+                <div class="palette-section" id="pieces-section" style="display: none;">
+                    <div class="palette-label">Pieces</div>
+                    <div class="fraction-piece tool-item"
+                         role="button"
+                         tabindex="0"
+                         data-tool="piece"
+                         data-denominator="2"
+                         aria-label="One half piece">
+                        1/2
+                    </div>
+                    <div class="fraction-piece tool-item"
+                         role="button"
+                         tabindex="0"
+                         data-tool="piece"
+                         data-denominator="3"
+                         aria-label="One third piece">
+                        1/3
+                    </div>
+                    <div class="fraction-piece tool-item"
+                         role="button"
+                         tabindex="0"
+                         data-tool="piece"
+                         data-denominator="4"
+                         aria-label="One fourth piece">
+                        1/4
+                    </div>
+                    <div class="fraction-piece tool-item"
+                         role="button"
+                         tabindex="0"
+                         data-tool="piece"
+                         data-denominator="6"
+                         aria-label="One sixth piece">
+                        1/6
+                    </div>
+                    <div class="fraction-piece tool-item"
+                         role="button"
+                         tabindex="0"
+                         data-tool="piece"
+                         data-denominator="8"
+                         aria-label="One eighth piece">
+                        1/8
+                    </div>
+                </div>
+
+                <!-- Trash -->
+                <div class="palette-section">
+                    <div class="tool-item"
+                         role="button"
+                         tabindex="0"
+                         id="trash-bin"
+                         aria-label="Trash: drop to delete">
+                        🗑️ Trash
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Right Stage (active tab content) -->
+            <section id="stage-container" role="tabpanel">
+
+                <!-- LOOK Tab -->
+                <div id="look-stage" class="stage-content active">
+                    <div class="fraction-display" role="img" aria-label="Three fourths shown as shaded circle">
+                        <svg class="svg-fraction" width="200" height="200" viewBox="0 0 200 200">
+                            <circle cx="100" cy="100" r="80" fill="none" stroke="#111827" stroke-width="2"/>
+                            <path d="M 100 100 L 100 20 A 80 80 0 0 1 180 100 Z" fill="#2563eb" opacity="0.8"/>
+                            <path d="M 100 100 L 180 100 A 80 80 0 0 1 100 180 Z" fill="#2563eb" opacity="0.8"/>
+                            <path d="M 100 100 L 100 180 A 80 80 0 0 1 20 100 Z" fill="#2563eb" opacity="0.8"/>
+                            <line x1="100" y1="100" x2="100" y2="20" stroke="#111827" stroke-width="2"/>
+                            <line x1="100" y1="100" x2="180" y2="100" stroke="#111827" stroke-width="2"/>
+                            <line x1="100" y1="100" x2="100" y2="180" stroke="#111827" stroke-width="2"/>
+                            <line x1="100" y1="100" x2="20" y2="100" stroke="#111827" stroke-width="2"/>
+                        </svg>
+                    </div>
+
+                    <div class="prompt-text">What do you notice?<br>What do you wonder?</div>
+
+                    <div class="marker-board"
+                         role="region"
+                         aria-label="Drop markers here to share thinking"
+                         data-zone="notice-board">
+                    </div>
+                </div>
+
+                <!-- COMPARE Tab -->
+                <div id="compare-stage" class="stage-content">
+                    <div class="compare-container">
+                        <div class="compare-item" role="img" aria-label="One half shown as bar">
+                            <svg class="svg-fraction" width="200" height="100" viewBox="0 0 200 100">
+                                <rect x="10" y="30" width="90" height="40" fill="#2563eb" opacity="0.8" stroke="#111827" stroke-width="2"/>
+                                <rect x="100" y="30" width="90" height="40" fill="white" stroke="#111827" stroke-width="2"/>
+                            </svg>
+                        </div>
+                        <div class="compare-item" role="img" aria-label="Two fourths shown as bar">
+                            <svg class="svg-fraction" width="200" height="100" viewBox="0 0 200 100">
+                                <rect x="10" y="30" width="45" height="40" fill="#2563eb" opacity="0.8" stroke="#111827" stroke-width="2"/>
+                                <rect x="55" y="30" width="45" height="40" fill="#2563eb" opacity="0.8" stroke="#111827" stroke-width="2"/>
+                                <rect x="100" y="30" width="45" height="40" fill="white" stroke="#111827" stroke-width="2"/>
+                                <rect x="145" y="30" width="45" height="40" fill="white" stroke="#111827" stroke-width="2"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div class="prompt-text">Which is greater?</div>
+
+                    <div class="stance-selector" role="radiogroup" aria-label="Choose your answer">
+                        <div class="stance-option" role="radio" tabindex="0" data-stance="left" aria-checked="false">
+                            Left
+                        </div>
+                        <div class="stance-option" role="radio" tabindex="-1" data-stance="right" aria-checked="false">
+                            Right
+                        </div>
+                        <div class="stance-option" role="radio" tabindex="-1" data-stance="equal" aria-checked="false">
+                            Equal
+                        </div>
+                        <div class="stance-option" role="radio" tabindex="-1" data-stance="unsure" aria-checked="false">
+                            Not Sure
+                        </div>
+                    </div>
+
+                    <div class="prompt-text">Explain your thinking:</div>
+                    <textarea class="explanation-input"
+                              placeholder="I think ___ because ___"
+                              aria-label="Type your explanation"></textarea>
+                </div>
+
+                <!-- BUILD Tab -->
+                <div id="build-stage" class="stage-content">
+                    <div class="target-prompt">
+                        Build this fraction:
+                        <span class="target-label hidden" id="build-target-label">3/4</span>
+                    </div>
+
+                    <div class="build-zone"
+                         role="region"
+                         aria-label="Build zone: drag pieces here"
+                         data-zone="build-zone">
+                        <svg width="300" height="200" viewBox="0 0 300 200">
+                            <circle cx="150" cy="100" r="80" fill="none" stroke="#d1d5db" stroke-width="2" stroke-dasharray="5,5"/>
+                        </svg>
+                    </div>
+
+                    <div class="prompt-text">Show it a different way. How do you know the parts are equal?</div>
+                </div>
+
+                <!-- PLACE Tab -->
+                <div id="place-stage" class="stage-content">
+                    <div class="prompt-text">
+                        Where does <span class="target-label hidden" id="place-target-label">3/4</span> live on this line?
+                    </div>
+
+                    <div class="number-line-container">
+                        <div class="number-line" role="slider"
+                             aria-label="Number line from 0 to 1"
+                             aria-valuemin="0"
+                             aria-valuemax="1"
+                             aria-valuenow="0.5">
+
+                            <div class="number-line-base"></div>
+
+                            <div class="number-line-endpoint start">0</div>
+                            <div class="number-line-endpoint end">1</div>
+
+                            <!-- Partitions (fourths) -->
+                            <div class="number-line-partition" style="left: 30%" data-value="0.25"></div>
+                            <div class="number-line-partition" style="left: 50%" data-value="0.5"></div>
+                            <div class="number-line-partition" style="left: 70%" data-value="0.75"></div>
+
+                            <!-- Labels -->
+                            <div class="number-line-label" style="left: 30%">1/4</div>
+                            <div class="number-line-label" style="left: 50%">1/2</div>
+                            <div class="number-line-label" style="left: 70%">3/4</div>
+
+                            <!-- Draggable dot -->
+                            <div class="number-line-dot"
+                                 tabindex="0"
+                                 role="slider"
+                                 aria-label="Drag to place fraction"
+                                 style="left: 50%"
+                                 data-position="0.5">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="prompt-text">How far from 0? Closer to 0, 1/2, or 1?</div>
+                </div>
+
+                <!-- MISCONCEPTIONS Tab -->
+                <div id="misconceptions-stage" class="stage-content">
+                    <div class="prompt-text">A student says:</div>
+
+                    <div class="claim-box">
+                        "3/6 is less than 1/2 because 6 is bigger than 2."
+                    </div>
+
+                    <div class="stance-selector" role="radiogroup" aria-label="Do you agree?">
+                        <div class="stance-option" role="radio" tabindex="0" data-stance="agree" aria-checked="false">
+                            ✓ Agree
+                        </div>
+                        <div class="stance-option" role="radio" tabindex="-1" data-stance="disagree" aria-checked="false">
+                            ✗ Disagree
+                        </div>
+                        <div class="stance-option" role="radio" tabindex="-1" data-stance="unsure" aria-checked="false">
+                            ? Not Sure
+                        </div>
+                    </div>
+
+                    <div class="prompt-text" id="misconception-prompt">Explain your thinking:</div>
+                    <textarea class="explanation-input"
+                              id="misconception-explanation"
+                              placeholder="I disagree because ___"
+                              aria-label="Type your explanation"></textarea>
+
+                    <div class="counterexample-box" id="counterexample-display">
+                        <div style="display: flex; gap: 2rem; align-items: center;">
+                            <svg class="svg-fraction" width="150" height="80" viewBox="0 0 150 80">
+                                <rect x="10" y="20" width="65" height="40" fill="#2563eb" opacity="0.8" stroke="#111827" stroke-width="2"/>
+                                <rect x="75" y="20" width="65" height="40" fill="white" stroke="#111827" stroke-width="2"/>
+                                <text x="75" y="70" text-anchor="middle" font-size="16" font-weight="600">1/2</text>
+                            </svg>
+                            <span style="font-size: 2rem; font-weight: 700;">=</span>
+                            <svg class="svg-fraction" width="180" height="80" viewBox="0 0 180 80">
+                                <rect x="10" y="20" width="25" height="40" fill="#2563eb" opacity="0.8" stroke="#111827" stroke-width="2"/>
+                                <rect x="35" y="20" width="25" height="40" fill="#2563eb" opacity="0.8" stroke="#111827" stroke-width="2"/>
+                                <rect x="60" y="20" width="25" height="40" fill="#2563eb" opacity="0.8" stroke="#111827" stroke-width="2"/>
+                                <rect x="85" y="20" width="25" height="40" fill="white" stroke="#111827" stroke-width="2"/>
+                                <rect x="110" y="20" width="25" height="40" fill="white" stroke="#111827" stroke-width="2"/>
+                                <rect x="135" y="20" width="25" height="40" fill="white" stroke="#111827" stroke-width="2"/>
+                                <text x="90" y="70" text-anchor="middle" font-size="16" font-weight="600">3/6</text>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+        </main>
+
+        <!-- Footer Bar -->
+        <footer id="footer-bar">
+            <div>
+                <button class="footer-btn" id="reset-btn" aria-label="Reset all">Reset</button>
+                <button class="footer-btn" id="undo-btn" aria-label="Undo last action">Undo</button>
+            </div>
+            <div>
+                <button class="footer-btn" id="lang-btn" aria-label="Switch language">EN</button>
+                <button class="footer-btn" id="a11y-btn" aria-label="Accessibility settings">A11y: ON</button>
+            </div>
+        </footer>
+
+        <!-- Screen reader announcements -->
+        <div role="status" aria-live="polite" aria-atomic="true" class="visually-hidden" id="sr-announcements"></div>
+
+    </div>
+
+    <script>
+    'use strict';
+
+    /* ===================================================================
+       STATE MANAGEMENT
+       =================================================================== */
+    const AppState = {
+        activeTab: 'look',
+        teacherGates: {
+            partitions: false,
+            benchmarks: false,
+            labels: false,
+            counterexample: false,
+            defend: false
+        },
+        toolsFrozen: false,
+        tools: [], // Active tools in workspace
+        stances: {
+            compare: null,
+            misconceptions: null
+        },
+        explanations: {
+            compare: '',
+            misconceptions: ''
+        },
+        numberLineDotPosition: 0.5,
+        undoStack: [],
+
+        load() {
+            try {
+                const saved = localStorage.getItem('fractionTalkState');
+                if (saved) {
+                    const data = JSON.parse(saved);
+                    Object.assign(this, data);
+                }
+            } catch (e) {
+                console.error('Failed to load state:', e);
+            }
+        },
+
+        save() {
+            try {
+                localStorage.setItem('fractionTalkState', JSON.stringify({
+                    activeTab: this.activeTab,
+                    teacherGates: this.teacherGates,
+                    tools: this.tools,
+                    stances: this.stances,
+                    explanations: this.explanations,
+                    numberLineDotPosition: this.numberLineDotPosition
+                }));
+            } catch (e) {
+                console.error('Failed to save state:', e);
+            }
+        },
+
+        reset() {
+            if (confirm('Reset all work? This cannot be undone.')) {
+                localStorage.removeItem('fractionTalkState');
+                location.reload();
+            }
+        },
+
+        pushUndo(action) {
+            this.undoStack.push(action);
+            if (this.undoStack.length > 20) {
+                this.undoStack.shift();
+            }
+        }
+    };
+
+    /* ===================================================================
+       DRAG ENGINE (Pointer Events + Keyboard)
+       =================================================================== */
+    const DragEngine = {
+        activeDrag: null,
+        keyboardGrabbed: null,
+
+        init() {
+            this.setupPointerEvents();
+            this.setupKeyboardEvents();
+        },
+
+        setupPointerEvents() {
+            document.addEventListener('pointerdown', (e) => {
+                if (AppState.toolsFrozen) return;
+
+                const tool = e.target.closest('.tool-item');
+                if (!tool || tool.id === 'trash-bin') return;
+
+                this.startDrag(tool, e);
+            });
+
+            document.addEventListener('pointermove', (e) => {
+                if (!this.activeDrag) return;
+                this.moveDrag(e);
+            });
+
+            document.addEventListener('pointerup', (e) => {
+                if (!this.activeDrag) return;
+                this.endDrag(e);
+            });
+
+            document.addEventListener('pointercancel', (e) => {
+                if (!this.activeDrag) return;
+                this.cancelDrag();
+            });
+        },
+
+        setupKeyboardEvents() {
+            document.addEventListener('keydown', (e) => {
+                // Global keyboard shortcuts
+                if (e.ctrlKey && e.shiftKey && e.key === 'O') {
+                    e.preventDefault();
+                    this.openFullscreen();
+                    return;
+                }
+
+                if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+                    e.preventDefault();
+                    this.undo();
+                    return;
+                }
+
+                const focused = document.activeElement;
+
+                // Ignore keyboard nav in text inputs
+                if (focused.tagName === 'TEXTAREA' || focused.tagName === 'INPUT') {
+                    return;
+                }
+
+                // Tool grab/drop
+                if (focused.classList.contains('tool-item')) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        this.toggleKeyboardGrab(focused);
+                    }
+                    if (e.key === 'Delete' && this.keyboardGrabbed === focused) {
+                        e.preventDefault();
+                        this.deleteKeyboardGrabbed();
+                    }
+                }
+
+                // Move grabbed tool
+                if (this.keyboardGrabbed) {
+                    const step = e.shiftKey ? 1 : 10;
+                    let handled = false;
+
+                    if (e.key === 'ArrowLeft') {
+                        this.moveKeyboardGrabbed(-step, 0);
+                        handled = true;
+                    } else if (e.key === 'ArrowRight') {
+                        this.moveKeyboardGrabbed(step, 0);
+                        handled = true;
+                    } else if (e.key === 'ArrowUp') {
+                        this.moveKeyboardGrabbed(0, -step);
+                        handled = true;
+                    } else if (e.key === 'ArrowDown') {
+                        this.moveKeyboardGrabbed(0, step);
+                        handled = true;
+                    } else if (e.key === 'Escape') {
+                        this.cancelKeyboardGrab();
+                        handled = true;
+                    }
+
+                    if (handled) {
+                        e.preventDefault();
+                        announce('Moved. Press Enter to drop, Escape to cancel.');
+                    }
+                }
+
+                // Number line dot (special 1D handling)
+                const dot = focused.closest('.number-line-dot');
+                if (dot) {
+                    this.handleNumberLineDotKeyboard(e, dot);
+                }
+            });
+        },
+
+        startDrag(tool, event) {
+            event.preventDefault();
+
+            // Clone tool for dragging
+            const clone = tool.cloneNode(true);
+            clone.classList.add('dragging');
+            clone.style.position = 'fixed';
+            clone.style.left = event.clientX + 'px';
+            clone.style.top = event.clientY + 'px';
+            clone.style.zIndex = 100;
+            document.body.appendChild(clone);
+
+            this.activeDrag = {
+                element: clone,
+                startX: event.clientX,
+                startY: event.clientY,
+                toolData: {
+                    type: tool.dataset.tool,
+                    denominator: tool.dataset.denominator,
+                    label: tool.getAttribute('aria-label')
+                }
+            };
+
+            tool.classList.add('grabbed');
+            clone.setPointerCapture(event.pointerId);
+        },
+
+        moveDrag(event) {
+            const { element } = this.activeDrag;
+            element.style.left = event.clientX + 'px';
+            element.style.top = event.clientY + 'px';
+        },
+
+        endDrag(event) {
+            const { element, toolData } = this.activeDrag;
+            const dropTarget = this.findDropTarget(event.clientX, event.clientY);
+
+            if (dropTarget && dropTarget.id === 'trash-bin') {
+                announce('Deleted');
+            } else if (dropTarget) {
+                this.createTool(toolData, event.clientX, event.clientY, dropTarget);
+                announce('Placed');
+            } else {
+                announce('Returned to palette');
+            }
+
+            element.remove();
+            document.querySelectorAll('.grabbed').forEach(el => el.classList.remove('grabbed'));
+            this.activeDrag = null;
+
+            AppState.save();
+        },
+
+        cancelDrag() {
+            if (this.activeDrag) {
+                this.activeDrag.element.remove();
+                document.querySelectorAll('.grabbed').forEach(el => el.classList.remove('grabbed'));
+                this.activeDrag = null;
+                announce('Drag cancelled');
+            }
+        },
+
+        toggleKeyboardGrab(tool) {
+            if (this.keyboardGrabbed === tool) {
+                // Drop
+                this.dropKeyboardGrabbed();
+            } else {
+                // Grab
+                this.keyboardGrabbed = tool;
+                tool.classList.add('grabbed');
+                announce('Grabbed. Use arrow keys to move, Enter to drop, Escape to cancel.');
+            }
+        },
+
+        moveKeyboardGrabbed(dx, dy) {
+            if (!this.keyboardGrabbed) return;
+
+            const rect = this.keyboardGrabbed.getBoundingClientRect();
+            const newLeft = rect.left + dx;
+            const newTop = rect.top + dy;
+
+            this.keyboardGrabbed.style.position = 'fixed';
+            this.keyboardGrabbed.style.left = newLeft + 'px';
+            this.keyboardGrabbed.style.top = newTop + 'px';
+        },
+
+        dropKeyboardGrabbed() {
+            if (!this.keyboardGrabbed) return;
+
+            const rect = this.keyboardGrabbed.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+
+            const dropTarget = this.findDropTarget(centerX, centerY);
+
+            if (dropTarget) {
+                announce('Placed');
+            } else {
+                announce('Returned to palette');
+            }
+
+            this.keyboardGrabbed.classList.remove('grabbed');
+            this.keyboardGrabbed.style.position = '';
+            this.keyboardGrabbed.style.left = '';
+            this.keyboardGrabbed.style.top = '';
+            this.keyboardGrabbed = null;
+
+            AppState.save();
+        },
+
+        cancelKeyboardGrab() {
+            if (!this.keyboardGrabbed) return;
+
+            this.keyboardGrabbed.classList.remove('grabbed');
+            this.keyboardGrabbed.style.position = '';
+            this.keyboardGrabbed.style.left = '';
+            this.keyboardGrabbed.style.top = '';
+            this.keyboardGrabbed = null;
+
+            announce('Cancelled');
+        },
+
+        deleteKeyboardGrabbed() {
+            if (!this.keyboardGrabbed) return;
+
+            this.keyboardGrabbed.remove();
+            this.keyboardGrabbed = null;
+            announce('Deleted');
+            AppState.save();
+        },
+
+        findDropTarget(x, y) {
+            const elements = document.elementsFromPoint(x, y);
+            return elements.find(el =>
+                el.classList.contains('marker-board') ||
+                el.classList.contains('build-zone') ||
+                el.id === 'trash-bin'
+            );
+        },
+
+        createTool(toolData, x, y, zone) {
+            const tool = document.createElement('div');
+            tool.className = 'tool-item';
+            tool.style.position = 'absolute';
+            tool.style.left = (x - zone.getBoundingClientRect().left) + 'px';
+            tool.style.top = (y - zone.getBoundingClientRect().top) + 'px';
+            tool.textContent = toolData.label;
+            tool.setAttribute('aria-label', toolData.label);
+            tool.tabIndex = 0;
+
+            zone.appendChild(tool);
+        },
+
+        handleNumberLineDotKeyboard(e, dot) {
+            const step = e.shiftKey ? 0.01 : 0.05;
+            let newPos = AppState.numberLineDotPosition;
+
+            if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                newPos = Math.max(0, newPos - step);
+                announce('Moved left');
+            } else if (e.key === 'ArrowRight') {
+                e.preventDefault();
+                newPos = Math.min(1, newPos + step);
+                announce('Moved right');
+            } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                e.preventDefault();
+                announce('Movement is horizontal only');
+                return;
+            }
+
+            AppState.numberLineDotPosition = newPos;
+            this.updateNumberLineDot(dot, newPos);
+            this.announceRelativePosition(newPos);
+            AppState.save();
+        },
+
+        updateNumberLineDot(dot, position) {
+            const leftPercent = 10 + (position * 80);
+            dot.style.left = leftPercent + '%';
+            dot.setAttribute('aria-valuenow', position.toFixed(2));
+            dot.dataset.position = position;
+        },
+
+        announceRelativePosition(position) {
+            let description = '';
+            if (position < 0.25) {
+                description = 'Closer to zero';
+            } else if (position < 0.5) {
+                description = 'Between zero and one half';
+            } else if (position === 0.5) {
+                description = 'At one half';
+            } else if (position < 0.75) {
+                description = 'Between one half and three fourths';
+            } else if (position < 1) {
+                description = 'Between three fourths and one';
+            } else {
+                description = 'At one';
+            }
+
+            setTimeout(() => announce(description), 100);
+        },
+
+        openFullscreen() {
+            window.open(window.location.href, '_blank');
+        },
+
+        undo() {
+            const action = AppState.undoStack.pop();
+            if (action) {
+                // Implement undo logic based on action type
+                announce('Undone');
+                AppState.save();
+            } else {
+                announce('Nothing to undo');
+            }
+        }
+    };
+
+    /* ===================================================================
+       TEACHER CONTROLS
+       =================================================================== */
+    const TeacherControls = {
+        init() {
+            // Toggle teacher bar
+            document.getElementById('teacher-bar-toggle').addEventListener('click', (e) => {
+                const bar = document.getElementById('teacher-bar');
+                const isCollapsed = bar.classList.toggle('collapsed');
+                e.target.setAttribute('aria-expanded', !isCollapsed);
+                e.target.textContent = isCollapsed ? 'Teacher Controls ▲' : 'Teacher Controls ▼';
+            });
+
+            // Reveal gates
+            document.querySelectorAll('.teacher-control[data-gate]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const gate = btn.dataset.gate;
+                    this.toggleGate(gate, btn);
+                });
+            });
+
+            // Freeze tools
+            document.getElementById('freeze-tools').addEventListener('click', (e) => {
+                AppState.toolsFrozen = !AppState.toolsFrozen;
+                e.target.classList.toggle('active');
+                e.target.textContent = AppState.toolsFrozen ? 'Unfreeze Tools' : 'Freeze Tools';
+                announce(AppState.toolsFrozen ? 'Tools frozen' : 'Tools unfrozen');
+            });
+
+            // Clear workspace
+            document.getElementById('clear-workspace').addEventListener('click', () => {
+                if (confirm('Clear all work on this tab?')) {
+                    this.clearWorkspace();
+                }
+            });
+        },
+
+        toggleGate(gate, btn) {
+            AppState.teacherGates[gate] = !AppState.teacherGates[gate];
+            const isOpen = AppState.teacherGates[gate];
+
+            btn.classList.toggle('active', isOpen);
+            const icon = btn.querySelector('.gate-icon');
+            icon.textContent = isOpen ? '🔓' : '🔒';
+
+            // Apply gate effects
+            switch(gate) {
+                case 'partitions':
+                    document.querySelectorAll('.number-line-partition').forEach(el => {
+                        el.classList.toggle('visible', isOpen);
+                    });
+                    announce(isOpen ? 'Partitions revealed' : 'Partitions hidden');
+                    break;
+
+                case 'benchmarks':
+                    document.querySelectorAll('.number-line-label').forEach(el => {
+                        el.classList.toggle('visible', isOpen);
+                    });
+                    announce(isOpen ? 'Benchmarks revealed' : 'Benchmarks hidden');
+                    break;
+
+                case 'labels':
+                    document.querySelectorAll('.target-label').forEach(el => {
+                        el.classList.toggle('hidden', !isOpen);
+                    });
+                    announce(isOpen ? 'Labels revealed' : 'Labels hidden');
+                    break;
+
+                case 'counterexample':
+                    document.getElementById('counterexample-display').classList.toggle('visible', isOpen);
+                    announce(isOpen ? 'Counterexample revealed' : 'Counterexample hidden');
+                    break;
+
+                case 'defend':
+                    const prompt = document.getElementById('misconception-prompt');
+                    const textarea = document.getElementById('misconception-explanation');
+                    if (isOpen) {
+                        prompt.textContent = 'How could this make sense to someone?';
+                        textarea.placeholder = 'Someone might think this because ___';
+                    } else {
+                        prompt.textContent = 'Explain your thinking:';
+                        textarea.placeholder = 'I disagree because ___';
+                    }
+                    announce(isOpen ? 'Defend mode enabled' : 'Defend mode disabled');
+                    break;
+            }
+
+            AppState.save();
+        },
+
+        clearWorkspace() {
+            const activeTab = AppState.activeTab;
+
+            // Clear markers and tools
+            document.querySelectorAll(`#${activeTab}-stage .marker-board, #${activeTab}-stage .build-zone`).forEach(zone => {
+                zone.querySelectorAll('.tool-item').forEach(tool => tool.remove());
+            });
+
+            // Clear explanations
+            document.querySelectorAll(`#${activeTab}-stage .explanation-input`).forEach(input => {
+                input.value = '';
+            });
+
+            // Clear stances
+            document.querySelectorAll(`#${activeTab}-stage .stance-option`).forEach(opt => {
+                opt.classList.remove('selected');
+                opt.setAttribute('aria-checked', 'false');
+            });
+
+            announce('Workspace cleared');
+            AppState.save();
+        }
+    };
+
+    /* ===================================================================
+       TAB NAVIGATION
+       =================================================================== */
+    const TabNav = {
+        init() {
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    this.switchTab(btn.dataset.tab);
+                });
+            });
+        },
+
+        switchTab(tabName) {
+            // Update active states
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                const isActive = btn.dataset.tab === tabName;
+                btn.classList.toggle('active', isActive);
+                btn.setAttribute('aria-selected', isActive);
+            });
+
+            document.querySelectorAll('.stage-content').forEach(content => {
+                content.classList.toggle('active', content.id === `${tabName}-stage`);
+            });
+
+            // Update palette visibility
+            const markersSection = document.getElementById('markers-section');
+            const piecesSection = document.getElementById('pieces-section');
+
+            markersSection.style.display = (tabName === 'look') ? 'block' : 'none';
+            piecesSection.style.display = (tabName === 'build') ? 'block' : 'none';
+
+            AppState.activeTab = tabName;
+            AppState.save();
+
+            announce(`Switched to ${tabName.toUpperCase()} tab`);
+        }
+    };
+
+    /* ===================================================================
+       STANCE & EXPLANATION TRACKING
+       =================================================================== */
+    const StanceTracker = {
+        init() {
+            // Compare tab stances
+            document.querySelectorAll('#compare-stage .stance-option').forEach(opt => {
+                opt.addEventListener('click', () => {
+                    this.selectStance('compare', opt);
+                });
+            });
+
+            document.querySelector('#compare-stage .explanation-input').addEventListener('input', (e) => {
+                AppState.explanations.compare = e.target.value;
+                this.checkForPrematureComparison(e.target.value);
+                AppState.save();
+            });
+
+            // Misconceptions tab stances
+            document.querySelectorAll('#misconceptions-stage .stance-option').forEach(opt => {
+                opt.addEventListener('click', () => {
+                    this.selectStance('misconceptions', opt);
+                });
+            });
+
+            document.querySelector('#misconceptions-stage .explanation-input').addEventListener('input', (e) => {
+                AppState.explanations.misconceptions = e.target.value;
+                AppState.save();
+            });
+        },
+
+        selectStance(tab, option) {
+            const container = option.closest('.stance-selector');
+            container.querySelectorAll('.stance-option').forEach(opt => {
+                opt.classList.remove('selected');
+                opt.setAttribute('aria-checked', 'false');
+                opt.tabIndex = -1;
+            });
+
+            option.classList.add('selected');
+            option.setAttribute('aria-checked', 'true');
+            option.tabIndex = 0;
+
+            AppState.stances[tab] = option.dataset.stance;
+
+            // Auto-focus explanation input
+            const input = option.closest('.stage-content').querySelector('.explanation-input');
+            if (input) {
+                input.focus();
+            }
+
+            AppState.save();
+        },
+
+        checkForPrematureComparison(text) {
+            const comparisonWords = ['bigger', 'more', 'greater', 'less', 'smaller'];
+            const hasComparison = comparisonWords.some(word =>
+                text.toLowerCase().includes(word)
+            );
+
+            if (hasComparison && AppState.activeTab === 'look') {
+                // Gentle hint without blocking
+                announce('That sounds like a comparison. We\'ll do that next.');
+            }
+        }
+    };
+
+    /* ===================================================================
+       NUMBER LINE DRAG (Pointer Events)
+       =================================================================== */
+    const NumberLine = {
+        init() {
+            const dot = document.querySelector('.number-line-dot');
+            if (!dot) return;
+
+            let isDragging = false;
+            const line = dot.closest('.number-line');
+            const lineRect = line.getBoundingClientRect();
+
+            dot.addEventListener('pointerdown', (e) => {
+                if (AppState.toolsFrozen) return;
+                isDragging = true;
+                dot.setPointerCapture(e.pointerId);
+                announce('Dragging dot');
+            });
+
+            dot.addEventListener('pointermove', (e) => {
+                if (!isDragging) return;
+
+                const lineRect = line.getBoundingClientRect();
+                const lineStart = lineRect.left + (lineRect.width * 0.1);
+                const lineEnd = lineRect.left + (lineRect.width * 0.9);
+                const lineWidth = lineEnd - lineStart;
+
+                const x = Math.max(lineStart, Math.min(lineEnd, e.clientX));
+                const position = (x - lineStart) / lineWidth;
+
+                AppState.numberLineDotPosition = position;
+                DragEngine.updateNumberLineDot(dot, position);
+            });
+
+            dot.addEventListener('pointerup', () => {
+                isDragging = false;
+                DragEngine.announceRelativePosition(AppState.numberLineDotPosition);
+                AppState.save();
+            });
+
+            dot.addEventListener('pointercancel', () => {
+                isDragging = false;
+            });
+        }
+    };
+
+    /* ===================================================================
+       FOOTER CONTROLS
+       =================================================================== */
+    const FooterControls = {
+        init() {
+            document.getElementById('reset-btn').addEventListener('click', () => {
+                AppState.reset();
+            });
+
+            document.getElementById('undo-btn').addEventListener('click', () => {
+                DragEngine.undo();
+            });
+
+            document.getElementById('fullscreen-btn').addEventListener('click', () => {
+                DragEngine.openFullscreen();
+            });
+
+            // Language toggle (placeholder)
+            document.getElementById('lang-btn').addEventListener('click', (e) => {
+                const current = e.target.textContent;
+                e.target.textContent = current === 'EN' ? 'ES' : 'EN';
+                announce(`Language switched to ${e.target.textContent}`);
+            });
+
+            // Accessibility toggle (placeholder)
+            document.getElementById('a11y-btn').addEventListener('click', (e) => {
+                announce('Accessibility settings opened');
+            });
+        }
+    };
+
+    /* ===================================================================
+       SCREEN READER ANNOUNCEMENTS
+       =================================================================== */
+    function announce(message) {
+        const region = document.getElementById('sr-announcements');
+        region.textContent = message;
+
+        // Clear after announcement
+        setTimeout(() => {
+            region.textContent = '';
+        }, 1000);
+    }
+
+    /* ===================================================================
+       INITIALIZATION
+       =================================================================== */
+    document.addEventListener('DOMContentLoaded', () => {
+        AppState.load();
+        DragEngine.init();
+        TeacherControls.init();
+        TabNav.init();
+        StanceTracker.init();
+        NumberLine.init();
+        FooterControls.init();
+
+        // Restore active tab
+        if (AppState.activeTab) {
+            TabNav.switchTab(AppState.activeTab);
+        }
+
+        // Restore number line position
+        const dot = document.querySelector('.number-line-dot');
+        if (dot && AppState.numberLineDotPosition) {
+            DragEngine.updateNumberLineDot(dot, AppState.numberLineDotPosition);
+        }
+
+        console.log('Fraction Talk Hub initialized');
+        announce('Fraction Talk Hub loaded. Use Tab to navigate.');
+    });
+    </script>
+</body>
+</html>
