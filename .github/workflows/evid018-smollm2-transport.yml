@@ -1,0 +1,59 @@
+name: EVID018 SmolLM2 Connector Transport
+
+on:
+  push:
+    branches:
+      - evid018-smollm2-transport-20260727
+    paths:
+      - .github/workflows/evid018-smollm2-transport.yml
+
+permissions:
+  contents: read
+
+env:
+  MODEL_URL: https://huggingface.co/HuggingFaceTB/SmolLM2-360M-Instruct-GGUF/resolve/593b5a2e04c8f3e4ee880263f93e0bd2901ad47f/smollm2-360m-instruct-q8_0.gguf?download=true
+  MODEL_FILE: smollm2-360m-instruct-q8_0.gguf
+  MODEL_SHA256: 48ab3034d0dd401fbc721eb1df3217902fee7dab9078992d66431f09b7750201
+
+jobs:
+  acquire:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Download pinned official model
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p payload
+          curl --fail --location --retry 5 --retry-all-errors --connect-timeout 20 \
+            --output "payload/${MODEL_FILE}" "${MODEL_URL}"
+
+      - name: Verify exact model bytes
+        shell: bash
+        run: |
+          set -euo pipefail
+          actual="$(sha256sum "payload/${MODEL_FILE}" | awk '{print $1}')"
+          test "$actual" = "$MODEL_SHA256"
+          bytes="$(stat -c '%s' "payload/${MODEL_FILE}")"
+          cat > payload/EVID018_MODEL_MANIFEST.json <<JSON
+          {
+            "schema": "mb.evid018.connector_model_artifact.v1",
+            "model_repo": "HuggingFaceTB/SmolLM2-360M-Instruct-GGUF",
+            "model_revision": "593b5a2e04c8f3e4ee880263f93e0bd2901ad47f",
+            "model_file": "${MODEL_FILE}",
+            "sha256": "${actual}",
+            "size_bytes": ${bytes},
+            "license": "apache-2.0",
+            "source": "official HuggingFaceTB GGUF repository"
+          }
+          JSON
+          sha256sum payload/* > payload/SHA256SUMS.txt
+
+      - name: Upload one-day connector artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: EVID018_SMOLLM2_360M_Q8_0
+          path: payload/
+          compression-level: 0
+          retention-days: 1
+          if-no-files-found: error
