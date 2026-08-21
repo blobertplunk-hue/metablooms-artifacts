@@ -100,7 +100,8 @@ jobs:
             echo "SELECTED_PLATFORM_PACKAGE=${{ steps.android-sdk.outputs.platform_package }}"
             java -version 2>&1
           } > "$OUT/evidence/runner-context.txt"
-          (cd "$OUT" && find . -type f -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS.txt)
+          (cd "$OUT" && find . -type f ! -name 'SHA256SUMS.txt' -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS.txt)
+          (cd "$OUT" && sha256sum -c SHA256SUMS.txt)
 
       - name: Upload Stage002 build proof
         uses: actions/upload-artifact@v4
