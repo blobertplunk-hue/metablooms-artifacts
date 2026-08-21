@@ -1,0 +1,111 @@
+name: Android Recorder Stage002 CI Bridge
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  build-shell:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout PR merge snapshot
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Android command-line tools
+        uses: android-actions/setup-android@v3
+
+      - name: Discover and install exact Android SDK packages
+        id: android-sdk
+        run: |
+          set -euo pipefail
+          sdkmanager --list > /tmp/sdkmanager-list.txt
+          PLATFORM_PACKAGE="$(awk -F'|' '/platforms;android-37(\.0)?[[:space:]]*\|/ { gsub(/^[[:space:]]+|[[:space:]]+$/, "", $1); print $1; exit }' /tmp/sdkmanager-list.txt)"
+          if [[ -z "$PLATFORM_PACKAGE" ]]; then
+            echo "No API 37 platform package found" >&2
+            grep -E 'platforms;android-37' /tmp/sdkmanager-list.txt || true
+            exit 1
+          fi
+          echo "platform_package=$PLATFORM_PACKAGE" >> "$GITHUB_OUTPUT"
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager "platform-tools" "$PLATFORM_PACKAGE" "build-tools;36.0.0"
+          {
+            echo "SELECTED_PLATFORM_PACKAGE=$PLATFORM_PACKAGE"
+            echo "SDKMANAGER_VERSION=$(sdkmanager --version | tail -1)"
+            echo "ANDROID_HOME=$ANDROID_HOME"
+            find "$ANDROID_HOME/platforms" -maxdepth 1 -type d -name 'android-37*' -print | sort
+            find "$ANDROID_HOME/build-tools" -maxdepth 1 -type d -name '36.0.0' -print | sort
+          } > /tmp/android-sdk-evidence.txt
+
+      - name: Set up Gradle 9.5.0
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.5.0'
+
+      - name: Generate pinned Gradle wrapper
+        working-directory: stage002/android-recorder
+        run: |
+          set -euo pipefail
+          gradle wrapper --gradle-version 9.5.0 --distribution-type bin
+          chmod +x gradlew
+          ./gradlew --version | tee /tmp/gradle-version.txt
+          grep -q 'Gradle 9.5.0' /tmp/gradle-version.txt
+
+      - name: Verify manifest policy GREEN
+        working-directory: stage002/android-recorder
+        run: |
+          set -euo pipefail
+          python3 scripts/verify_manifest_policy.py | tee /tmp/manifest-policy.txt
+          grep -q '^PASS:' /tmp/manifest-policy.txt
+
+      - name: Assemble debug APK
+        working-directory: stage002/android-recorder
+        run: |
+          set -euo pipefail
+          ./gradlew :app:assembleDebug --stacktrace | tee /tmp/assemble-debug.txt
+          test -f app/build/outputs/apk/debug/app-debug.apk
+          sha256sum app/build/outputs/apk/debug/app-debug.apk | tee /tmp/app-debug.apk.sha256
+
+      - name: Package Stage002 verified outputs
+        run: |
+          set -euo pipefail
+          SRC=stage002/android-recorder
+          OUT=/tmp/android-recorder-stage002
+          mkdir -p "$OUT/project" "$OUT/evidence"
+          cp -a "$SRC/settings.gradle.kts" "$SRC/build.gradle.kts" "$SRC/gradle.properties" "$SRC/gradlew" "$SRC/gradlew.bat" "$OUT/project/"
+          cp -a "$SRC/gradle" "$SRC/app" "$SRC/scripts" "$OUT/project/"
+          rm -rf "$OUT/project/app/build" "$OUT/project/.gradle"
+          cp "$SRC/app/build/outputs/apk/debug/app-debug.apk" "$OUT/app-debug.apk"
+          cp /tmp/android-sdk-evidence.txt "$OUT/evidence/android-sdk-evidence.txt"
+          cp /tmp/gradle-version.txt "$OUT/evidence/gradle-version.txt"
+          cp /tmp/manifest-policy.txt "$OUT/evidence/manifest-policy.txt"
+          cp /tmp/assemble-debug.txt "$OUT/evidence/assemble-debug.txt"
+          cp /tmp/app-debug.apk.sha256 "$OUT/evidence/app-debug.apk.sha256"
+          {
+            echo "GITHUB_SHA=$GITHUB_SHA"
+            echo "GITHUB_REF=$GITHUB_REF"
+            echo "SELECTED_PLATFORM_PACKAGE=${{ steps.android-sdk.outputs.platform_package }}"
+            java -version 2>&1
+          } > "$OUT/evidence/runner-context.txt"
+          (cd "$OUT" && find . -type f -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS.txt)
+
+      - name: Upload Stage002 build proof
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-recorder-stage002-build-proof
+          path: /tmp/android-recorder-stage002
+          if-no-files-found: error
+          retention-days: 7
