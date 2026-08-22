@@ -1,6 +1,11 @@
 name: Build MetaBlooms Android Share APK
 
 on:
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "android/metablooms-share/**"
+      - ".github/workflows/metablooms-share-build.yml"
   push:
     branches: ["build/metablooms-android-share-v1"]
     paths:
