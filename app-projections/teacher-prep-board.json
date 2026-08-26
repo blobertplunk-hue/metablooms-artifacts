@@ -1,5 +1,5 @@
 {
-  "active_candidate_count": 1,
+  "active_candidate_count": 2,
   "excluded_privacy_count": 0,
   "items": [
     {
@@ -28,10 +28,37 @@
       "status": "NOT_STARTED",
       "subject": "Science",
       "title": "SYNTHETIC — print Monday science tools for provider transport proof"
+    },
+    {
+      "confidence": "EXTRACTED",
+      "day": "Thursday",
+      "dedupe_key": "turn:synthetic-deadline-thursday-prepare-science-materials",
+      "effective_date": null,
+      "id": "app_5ba3983bb3a36adcb30e3a37",
+      "notes": "Automatically extracted from governed turn task: SYNTHETIC — deadline Thursday prepare science materials",
+      "occurred_at_utc": "2026-08-26T03:22:42Z",
+      "prep_type": "OTHER",
+      "priority": "HIGH",
+      "privacy_class": "TEACHER_OPERATIONAL",
+      "source": {
+        "artifact_refs": [],
+        "chat_id": "UNAVAILABLE",
+        "chat_url": "https://chatgpt.com/g/g-p-689c74a1b2c881919eef34000e072573-metabrain/c/6a8e3897-22b8-83ea-88af-68254f32db0e",
+        "source_refs": [
+          {
+            "kind": "chat",
+            "uri": "https://chatgpt.com/g/g-p-689c74a1b2c881919eef34000e072573-metabrain/c/6a8e3897-22b8-83ea-88af-68254f32db0e"
+          }
+        ],
+        "workstream": "app-factory-r1b2-standard-lean-proof"
+      },
+      "status": "NOT_STARTED",
+      "subject": "Science",
+      "title": "SYNTHETIC — deadline Thursday prepare science materials"
     }
   ],
   "projection": "teacher-prep-board",
-  "projection_sha256": "2ce481b31af3c09e9182a52c1433b9d0f1d6850fd08c87ef922756d86dcebb30",
+  "projection_sha256": "91bf04584e0071bb8d02af31088022bb7525dd9e3d56f08567954c11032ce0fc",
   "schema": "mb.cccc.teacher_prep_board_projection.v1",
-  "source_event_count": 1
+  "source_event_count": 2
 }
