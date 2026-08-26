@@ -3,19 +3,19 @@
   "excluded_privacy_count": 0,
   "items": [
     {
-      "confidence": "VERIFIED",
+      "confidence": "EXTRACTED",
       "day": "Monday",
-      "dedupe_key": "r1b1:synthetic:2026-08-31:science:print-tools",
-      "effective_date": "2026-08-31",
-      "id": "r1b1-synthetic-science-tools-20260826",
-      "notes": "Golden-path projection check. Synthetic task only; no student data.",
-      "occurred_at_utc": "2026-08-26T02:31:00Z",
+      "dedupe_key": "turn:synthetic-print-monday-science-tools-for-provider-transport-proof",
+      "effective_date": null,
+      "id": "app_13b7608b6c70cf5ec34347b4",
+      "notes": "Automatically extracted from governed turn task: SYNTHETIC — print Monday science tools for provider transport proof",
+      "occurred_at_utc": "2026-08-26T03:18:19Z",
       "prep_type": "PRINT_COPY",
-      "priority": "HIGH",
+      "priority": "NORMAL",
       "privacy_class": "TEACHER_OPERATIONAL",
       "source": {
         "artifact_refs": [],
-        "chat_id": "6a8e3897-22b8-83ea-88af-68254f32db0e",
+        "chat_id": "UNAVAILABLE",
         "chat_url": "https://chatgpt.com/g/g-p-689c74a1b2c881919eef34000e072573-metabrain/c/6a8e3897-22b8-83ea-88af-68254f32db0e",
         "source_refs": [
           {
@@ -23,15 +23,15 @@
             "uri": "https://chatgpt.com/g/g-p-689c74a1b2c881919eef34000e072573-metabrain/c/6a8e3897-22b8-83ea-88af-68254f32db0e"
           }
         ],
-        "workstream": "app-factory-r1b1"
+        "workstream": "app-factory-r1b2-live-proof"
       },
       "status": "NOT_STARTED",
       "subject": "Science",
-      "title": "SYNTHETIC — Print Monday science tool images"
+      "title": "SYNTHETIC — print Monday science tools for provider transport proof"
     }
   ],
   "projection": "teacher-prep-board",
-  "projection_sha256": "9a337a59df3cc51d6b9277246478df6d2e2c8a870d47945de755ad986b2dc2b3",
+  "projection_sha256": "2ce481b31af3c09e9182a52c1433b9d0f1d6850fd08c87ef922756d86dcebb30",
   "schema": "mb.cccc.teacher_prep_board_projection.v1",
   "source_event_count": 1
 }
