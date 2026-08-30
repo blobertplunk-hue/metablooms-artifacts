@@ -1,0 +1,1 @@
+If this commit succeeds, the repository remains writable while exact-byte blob promotion is tested through the Git data API.
