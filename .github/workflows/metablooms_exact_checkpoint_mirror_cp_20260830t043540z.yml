@@ -20,9 +20,16 @@ jobs:
           set -euo pipefail
           root='mirrors/CP-20260830T043540Z-25c4ea3d40'
           cat \
-            "$root/staging/payload_gzip_000.b64" \
-            "$root/staging/payload_gzip_001.b64" \
-            "$root/staging/payload_gzip_001_tail.b64" \
+            "$root/fresh_parts/part_000.b64" \
+            "$root/fresh_parts/part_001.b64" \
+            "$root/fresh_parts/part_002.b64" \
+            "$root/fresh_parts/part_003_segments/seg_000.b64" \
+            "$root/fresh_parts/part_003_segments/seg_001.b64" \
+            "$root/fresh_parts/part_003_segments/seg_002.b64" \
+            "$root/fresh_parts/part_003_segments/seg_003.b64" \
+            "$root/fresh_parts/part_004.b64" \
+            "$root/fresh_parts/part_005.b64" \
+            "$root/fresh_parts/part_006.b64" \
             | tr -d '\n\r' \
             | base64 --decode \
             | gzip --decompress \
