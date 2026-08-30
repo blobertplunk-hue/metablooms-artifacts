@@ -1,0 +1,35 @@
+name: MetaBlooms Exact Checkpoint Mirror CP-20260830T043540Z
+
+on:
+  push:
+    paths:
+      - 'mirrors/CP-20260830T043540Z-25c4ea3d40/TRIGGER'
+
+permissions:
+  contents: write
+
+jobs:
+  reconstruct-and-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Reconstruct exact bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          root='mirrors/CP-20260830T043540Z-25c4ea3d40'
+          cat "$root"/staging/payload_gzip_*.b64 | tr -d '\n\r' | base64 --decode | gzip --decompress > "$root/PAYLOAD_BUNDLE.tar"
+          actual=$(sha256sum "$root/PAYLOAD_BUNDLE.tar" | awk '{print $1}')
+          expected='125ca85c3cbcdd6697669dd82b2e771373747b9938c78e3c65941b3e65ec64cc'
+          test "$actual" = "$expected"
+          printf '%s  PAYLOAD_BUNDLE.tar\n' "$actual" > "$root/PAYLOAD_BUNDLE.tar.sha256"
+      - name: Commit exact provider mirror
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'metablooms-mirror-bot'
+          git config user.email 'metablooms-mirror-bot@users.noreply.github.com'
+          git add mirrors/CP-20260830T043540Z-25c4ea3d40/PAYLOAD_BUNDLE.tar mirrors/CP-20260830T043540Z-25c4ea3d40/PAYLOAD_BUNDLE.tar.sha256
+          git commit -m 'Mirror CP-20260830T043540Z-25c4ea3d40 exact payload bundle'
+          git push
