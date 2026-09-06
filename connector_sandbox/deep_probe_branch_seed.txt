@@ -1,3 +1,0 @@
-MetaBlooms GitHub PR probe
-branch_only=true
-non_authoritative=true
