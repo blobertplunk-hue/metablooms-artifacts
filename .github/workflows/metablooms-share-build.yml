@@ -1,0 +1,46 @@
+name: Build MetaBlooms Android Share APK
+
+on:
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "android/metablooms-share/**"
+      - ".github/workflows/metablooms-share-build.yml"
+  push:
+    branches: ["build/metablooms-android-share-v1"]
+    paths:
+      - "android/metablooms-share/**"
+      - ".github/workflows/metablooms-share-build.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "9.5.0"
+      - name: Show Android SDK
+        run: |
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          sdkmanager --list_installed | grep -E "platforms;android-36|build-tools;36" || true
+      - name: Build debug APK
+        run: gradle -p android/metablooms-share --no-daemon clean assembleDebug
+      - name: Stage APK and checksum
+        run: |
+          mkdir -p dist
+          cp android/metablooms-share/app/build/outputs/apk/debug/app-debug.apk dist/MetaBlooms-Share-v0.1.0-debug.apk
+          sha256sum dist/MetaBlooms-Share-v0.1.0-debug.apk > dist/MetaBlooms-Share-v0.1.0-debug.apk.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MetaBlooms-Share-v0.1.0-debug
+          path: dist/*
+          if-no-files-found: error
