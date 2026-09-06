@@ -1,0 +1,3 @@
+MetaBlooms GitHub deeper capability probe
+status=initial
+non_authoritative=true
