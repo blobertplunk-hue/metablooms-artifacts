@@ -1,0 +1,6 @@
+METABLOOMS_STAGE004A_GITHUB_CONNECTOR_CANARY_V1
+purpose=qualify_small_contents_api_roundtrip
+authority=capability_probe_only
+canonical_mutation_authorized=false
+expected_fetch_back=exact_utf8_bytes
+payload_bytes=182
