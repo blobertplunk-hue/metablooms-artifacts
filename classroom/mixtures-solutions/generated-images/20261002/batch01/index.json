@@ -1,0 +1,81 @@
+{
+  "schema": "metablooms.mixtures_solutions.generated_image_index.v1",
+  "batch_id": "mixtures-solutions-generated-20261002-batch01",
+  "asset_count": 10,
+  "drive_folder_id": "1oav6yMeydryS18tcI_RETJH_BeAkDBhi",
+  "github_repository": "blobertplunk-hue/metablooms-artifacts",
+  "github_prefix": "classroom/mixtures-solutions/generated-images/20261002/batch01",
+  "pc_target": "C:\\Users\\User\\Documents\\MetaBlooms\\MixturesSolutionsLab\\generated_images\\20261002_batch01",
+  "images": [
+    {
+      "file_name": "water__cornstarch.png",
+      "sha256": "4878d0418f6314ceab4369e82966a4cc50abc13457dec97ca5209f1a35887140",
+      "drive_id": "1uLXjXoieftoh24ybio6DU6AHdCyafc6W",
+      "github_blob_sha": "d864e061e516c339c8ca3be68b9d737e7507b51e",
+      "github_path": "classroom/mixtures-solutions/generated-images/20261002/batch01/images/water__cornstarch.png"
+    },
+    {
+      "file_name": "water__rubbing_alcohol.png",
+      "sha256": "716513088a0fb23b6a35b9e7b99497a2f5f46e8b7414de72ed3b2db58dcbb658",
+      "drive_id": "137MTQpfjosVzO74jC7m6zv-Yg1WMXBPz",
+      "github_blob_sha": "3e75af8acf383daca453a1754673afa1c2145ec6",
+      "github_path": "classroom/mixtures-solutions/generated-images/20261002/batch01/images/water__rubbing_alcohol.png"
+    },
+    {
+      "file_name": "water__milk.png",
+      "sha256": "c388259bf0a81062f0ab0e8b1d8dfc0a4e8ed2842cd8f9d76d67602458c25bbd",
+      "drive_id": "1F-Kof4MAW_nmW3vFRK1IyUaIvBGAvbri",
+      "github_blob_sha": "6d048c51a7055e92eb1e776b027a559b967a439b",
+      "github_path": "classroom/mixtures-solutions/generated-images/20261002/batch01/images/water__milk.png"
+    },
+    {
+      "file_name": "water__lemon_juice.png",
+      "sha256": "cd3f297722373b4c00ccd8df62393c7bcc5ec9f2f97135f7aa235f77dfb9559a",
+      "drive_id": "1qqMDPMvAipFdG2rh0nxHgudKrshULwFn",
+      "github_blob_sha": "55cb0f8a9fe636bd1decb8e72e21727ebc38f165",
+      "github_path": "classroom/mixtures-solutions/generated-images/20261002/batch01/images/water__lemon_juice.png"
+    },
+    {
+      "file_name": "salt__sand.png",
+      "sha256": "6f0ab3911ed6d305176bc584cd6d5cdab606d3cda7ec49fffb17fc6784e0fbd0",
+      "drive_id": "1MGr5k7YzWK9OR6NLBmICHvanS3MsSG5k",
+      "github_blob_sha": "b67a6315287edcea9ad44cf08a24ee0cf05e74b8",
+      "github_path": "classroom/mixtures-solutions/generated-images/20261002/batch01/images/salt__sand.png"
+    },
+    {
+      "file_name": "salt__sugar.png",
+      "sha256": "1767c930090c47100bde9ab96168d1de1be14f300bf21222676707e2b61ff93e",
+      "drive_id": "1Yvmsx0NmyIyYI37MFgQDwtvBh9zcskCq",
+      "github_blob_sha": "57d62725ec141c6f2b696c7ec4d43ab0c212649d",
+      "github_path": "classroom/mixtures-solutions/generated-images/20261002/batch01/images/salt__sugar.png"
+    },
+    {
+      "file_name": "salt__baking_soda.png",
+      "sha256": "932ca3b652f41cc55240f3fb70c9a0c6fc2cd191c233591d611bfab77393ddc0",
+      "drive_id": "1TJTaiV0Vrd8eJSr1R5wXRHjSMg8jW4wn",
+      "github_blob_sha": "02047e5e4ce3b01c218b3420212076bdf34070b8",
+      "github_path": "classroom/mixtures-solutions/generated-images/20261002/batch01/images/salt__baking_soda.png"
+    },
+    {
+      "file_name": "salt__vinegar.png",
+      "sha256": "91fe0fce9cd2fc53df56373048c9025ffcf3028d2c0b46bc1e256976ed7e2402",
+      "drive_id": "1vjEMtxYqhroE8mH-hvVsZXXEEyFc6WMr",
+      "github_blob_sha": "1e4d10aa4731ba5f1fca1703c943f36e168ac874",
+      "github_path": "classroom/mixtures-solutions/generated-images/20261002/batch01/images/salt__vinegar.png"
+    },
+    {
+      "file_name": "salt__oil.png",
+      "sha256": "80df83707b7eb61e10d69f56cbe9905cc6c0412cfd5158d0b2d306475a996916",
+      "drive_id": "1nHDhXwTDC74J62VhZ1C0ZnOBylJaJyX5",
+      "github_blob_sha": "765c0afbf715ec594597392fe6b121a0132de8a6",
+      "github_path": "classroom/mixtures-solutions/generated-images/20261002/batch01/images/salt__oil.png"
+    },
+    {
+      "file_name": "salt__food_coloring.png",
+      "sha256": "8ac45dd5317349c8b65bfe1c4495c02738a381ee3b17ae6c4ec2ce0038e7e5e1",
+      "drive_id": "1O48M3Obd8ZMmfjUStOZp5BmQXkygHxj5",
+      "github_blob_sha": "764a1dec67903bbb6d46c543616064c43d9d16b7",
+      "github_path": "classroom/mixtures-solutions/generated-images/20261002/batch01/images/salt__food_coloring.png"
+    }
+  ]
+}
